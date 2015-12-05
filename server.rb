@@ -1,30 +1,23 @@
 require 'sinatra'
 require "sinatra/activerecord"
 require 'json'
-require_relative "./models/user"
+require_relative "./models/location"
 
-set :port, 1234
-set :database, {adapter: "sqlite3", database: "login-service.sqlite3"}
+set :port, 2345
+set :database, {adapter: "sqlite3", database: "database-service.sqlite3"}
 
-post '/register' do
-  user = User.new(params)
-  if user.save
-    status 200
-    user.to_json
-  else
-    status 401
-  end
+get '/locations' do
+  content_type :json
+  Location.all.reverse.to_json
 end
 
-post '/login' do
-  user = User.find_by(email: params[:email])
+post '/savelocations' do
+  params = JSON.parse request.body.read
+  puts "PARAMS #{params['locations']}"
 
-  if user == nil
-    status 400
-  elsif user.login_with(params[:password])
-    status 200
-    user.to_json
-  else
-    status 401
+  params['locations'].each do | location |
+    puts location.class
+    Location.create(JSON.parse(location))
   end
+  status 200
 end
